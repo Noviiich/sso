@@ -1,0 +1,44 @@
+// Версия ProtoBuf
+syntax = "proto3";
+
+// Текущий пакет - указывает пространство имен для сервиса и сообщений. Помогает избегать конфликтов имен.
+package auth;
+
+// Настройки для генерации Go кода.
+option go_package = "nov.sso.v1;ssov1";
+
+// Auth сервис предоставляет методы для аутентификации пользователей.
+service Auth {
+  // Register registers a new user.
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  // Login logs in a user and returns an auth token.
+  rpc Login (LoginRequest) returns (LoginResponse);
+}
+
+// TODO: На будущее, следующий сервис можно описать прямо здесь,
+// либо вынести в отдельный файл
+// service Permissions {
+//    GetUserPermissions(GetUserPermissionsRequest) return UserPermissions
+// }
+
+// Объект, который отправляется при вызове RPC-метода (ручки) Register.
+message RegisterRequest {
+  string email = 1; // Email, который будет использоваться для регистрации.
+    string password = 2; // Password of the user to register.
+    }
+
+// Объект, который метод (ручка) вернёт.
+message RegisterResponse {
+  int64 user_id = 1; // User ID для зарегистрированного пользователя.
+}
+
+// То же самое для метода Login()
+message LoginRequest {
+  string email = 1; // Email, который будет использоваться для входа.
+  string password = 2; // Пароль пользователя для входа.
+  int32 app_id = 3; // ID приложения, в которое выполняется вход.
+}
+
+message LoginResponse {
+  string token = 1; // Auth token для вошедшего пользователя.
+}
