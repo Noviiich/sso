@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/Noviiich/sso/internal/app"
 	"github.com/Noviiich/sso/internal/config"
 	"github.com/Noviiich/sso/internal/lib/logger/handlers/slogpretty"
 )
@@ -19,6 +20,10 @@ func main() {
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting application", slog.Any("config", cfg))
+
+	application := app.New(log, cfg.StoragePath, cfg.GRPC.Port, cfg.TokenTTL)
+
+	application.GRPCServer.MustRun()
 }
 
 func setupLogger(env string) *slog.Logger {
