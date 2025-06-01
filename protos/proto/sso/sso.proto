@@ -13,6 +13,8 @@ service Auth {
   rpc Register (RegisterRequest) returns (RegisterResponse);
   // Login logs in a user and returns an auth token.
   rpc Login (LoginRequest) returns (LoginResponse);
+  // Проверка, является ли пользователь администратором.
+  rpc isAdmin (IsAdminRequest) returns (IsAdminResponse); 
 }
 
 // TODO: На будущее, следующий сервис можно описать прямо здесь,
@@ -41,4 +43,12 @@ message LoginRequest {
 
 message LoginResponse {
   string token = 1; // Auth token для вошедшего пользователя.
+}
+
+message IsAdminRequest {
+  int64 user_id = 1; // ID пользователя, для которого проверяется админство.
+}
+
+message IsAdminResponse {
+  bool is_admin = 1; // Является ли пользователь администратором.
 }
