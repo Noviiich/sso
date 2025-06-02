@@ -145,3 +145,29 @@ func (a *Auth) Login(
 	log.Info("token generated successfully", slog.String("token", token))
 	return token, nil
 }
+
+func (a *Auth) IsAdmin(
+	ctx context.Context,
+	userID int64,
+) (bool, error) {
+	const op = "Auth.IsAdmin"
+
+	// Создание контекста для логирования
+	log := a.log.With(
+		slog.String("op", op),
+		slog.Int64("user_id", userID),
+	)
+
+	log.Info("checking if user is admin")
+
+	// Проверяем, является ли пользователь администратором
+	isAdmin, err := a.usrProvider.IsAdmin(ctx, userID)
+	if err != nil {
+		log.Error("failed to check if user is admin", sl.Err(err))
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("checked if user is admin", slog.Bool("is_admin", isAdmin))
+
+	return isAdmin, nil
+}
