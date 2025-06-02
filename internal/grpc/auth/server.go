@@ -5,6 +5,8 @@ import (
 
 	ssov1 "github.com/Noviiich/sso/protos/gen/go/sso"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type serverAPI struct {
@@ -19,19 +21,48 @@ func (s *serverAPI) Login(
 	ctx context.Context,
 	req *ssov1.LoginRequest,
 ) (*ssov1.LoginResponse, error) {
-	panic("implement me")
+	// Обработка ошибка осуществляется с помощью status.Error,  для того, чтобы формат ошибки был понятен любому grpc-клиенту
+	if req.Email == "" {
+		return nil, status.Error(codes.InvalidArgument, "email is required")
+	}
+	if req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "password is required")
+	}
+	if req.AppId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "app_id is required")
+	}
+
+	// Здесь должна быть логика аутентификации пользователя
+	return &ssov1.LoginResponse{
+		Token: "example_token", // Здесь должен быть реальный токен, полученный после аутентификации
+	}, nil
 }
 
 func (s *serverAPI) Register(
 	ctx context.Context,
 	req *ssov1.RegisterRequest,
 ) (*ssov1.RegisterResponse, error) {
-	panic("implement me")
+	if req.Email == "" {
+		return nil, status.Error(codes.InvalidArgument, "email is required")
+	}
+	if req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "password is required")
+	}
+
+	// Здесь должна быть логика регистрации пользователя
+	return &ssov1.RegisterResponse{UserId: 1}, nil
 }
 
 func (s *serverAPI) isAdmin(
 	ctx context.Context,
 	req *ssov1.IsAdminRequest,
 ) (*ssov1.IsAdminResponse, error) {
-	panic("implement me")
+	if req.UserId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "user_id is required")
+	}
+
+	// Здесь должна быть логика проверки, является ли пользователь администратором
+	return &ssov1.IsAdminResponse{
+		IsAdmin: true,
+	}, nil
 }
