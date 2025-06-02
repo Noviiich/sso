@@ -2,12 +2,15 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/Noviiich/sso/internal/domain/models"
+	"github.com/Noviiich/sso/internal/lib/jwt"
 	"github.com/Noviiich/sso/internal/lib/logger/sl"
+	"github.com/Noviiich/sso/internal/storage"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,6 +21,10 @@ type Auth struct {
 	appProvider AppProvider
 	tokenTTL    time.Duration
 }
+
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials") //
+)
 
 type UserSaver interface {
 	SaveUser(
@@ -85,4 +92,56 @@ func (a *Auth) RegisterNewUser(
 	}
 
 	return id, nil
+}
+
+func (a *Auth) Login(
+	ctx context.Context,
+	email string,
+	password string, // пароль в открытом виде
+	appID int, // ID приложения, в которое пользователь хочет войти
+) (string, error) {
+	const op = "Auth.Login"
+
+	// Создание контекста для логирования
+	log := a.log.With(
+		slog.String("op", op),
+		slog.String("username", email),
+	)
+
+	log.Info("user login attempt")
+
+	// Получаем пользователя из БД
+	user, err := a.usrProvider.User(ctx, email)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			a.log.Warn("user not found", sl.Err(err))
+			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
+		}
+		a.log.Error("failed to get user", sl.Err(err))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	// Проверям корректность полученного пароля
+	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
+		log.Warn("invalid password", sl.Err(err))
+		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
+	}
+
+	// Получение информации о приложении
+	app, err := a.appProvider.App(ctx, appID)
+	if err != nil {
+		fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("user logged in successfully")
+
+	// Генерация JWT токена
+	token, err := jwt.NewToken(user, app, a.tokenTTL)
+	if err != nil {
+		log.Error("failed to generate token", sl.Err(err))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("token generated successfully", slog.String("token", token))
+	return token, nil
 }
