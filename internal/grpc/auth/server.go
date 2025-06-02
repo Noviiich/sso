@@ -95,8 +95,15 @@ func (s *serverAPI) IsAdmin(
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
 	}
 
-	// Здесь должна быть логика проверки, является ли пользователь администратором
+	isAdmin, err := s.auth.IsAdmin(ctx, req.UserId)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "user not found")
+		}
+		return nil, status.Error(codes.Internal, "failed to check admin status")
+	}
+
 	return &ssov1.IsAdminResponse{
-		IsAdmin: true,
+		IsAdmin: isAdmin,
 	}, nil
 }
