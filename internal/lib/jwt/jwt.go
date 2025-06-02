@@ -12,7 +12,7 @@ func NewToken(user models.User, app models.App, duration time.Duration) (string,
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	// payload
-	claims := token.Claims.(jwt.MapClaims)
+	claims := token.Claims.(jwt.MapClaims) //преобразование Claims в карту для удобства работы с ключами
 	claims["uid"] = user.ID
 	claims["email"] = user.Email
 	claims["app_id"] = app.ID

@@ -26,6 +26,7 @@ var (
 	ErrInvalidCredentials = errors.New("invalid credentials") //
 )
 
+// UserSaver интерфейс для сохранения пользователя в БД.
 type UserSaver interface {
 	SaveUser(
 		ctx context.Context,
@@ -34,11 +35,13 @@ type UserSaver interface {
 	) (int64, error)
 }
 
+// UserProvider интерфейс для получения информации о пользователе из БД.
 type UserProvider interface {
 	User(ctx context.Context, email string) (models.User, error)
 	IsAdmin(ctx context.Context, userID int64) (bool, error)
 }
 
+// AppProvider интерфейс для получения информации о приложении по его ID.
 type AppProvider interface {
 	App(ctx context.Context, appID int) (models.App, error)
 }
