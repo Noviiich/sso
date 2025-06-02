@@ -9,6 +9,21 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type Auth interface {
+	Login(
+		ctx context.Context,
+		email string,
+		password string,
+		appID int,
+	) (token string, err error)
+	RegisterNewUser(
+		ctx context.Context,
+		email string,
+		password string,
+	) (userID int64, err error)
+	IsAdmin(ctx context.Context, userID int64) (bool, error)
+}
+
 type serverAPI struct {
 	ssov1.UnimplementedAuthServer //заглушка для методов, которые будут реализованы в будущем для запуска gRPC сервера
 }
@@ -53,7 +68,7 @@ func (s *serverAPI) Register(
 	return &ssov1.RegisterResponse{UserId: 1}, nil
 }
 
-func (s *serverAPI) isAdmin(
+func (s *serverAPI) IsAdmin(
 	ctx context.Context,
 	req *ssov1.IsAdminRequest,
 ) (*ssov1.IsAdminResponse, error) {
