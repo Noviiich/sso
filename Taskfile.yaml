@@ -3,8 +3,12 @@ version: "3"
 tasks:  
   default: # Если не указать конкретную команду, будут выполнены дефолтные
     cmds:  
-      - task: migrate  
+      - task: start  
   migrate:  ## Команда для миграции
     desc: "Run database migrations"
     cmds:
       - go run ./cmd/migrator --storage-path=./storage/sso.db --migrations-path=./migrations
+  start:  ## Команда для запуска приложения
+    desc: "Run the application"
+    cmds:
+      - go run ./cmd/sso --config="./config/local.yaml"
