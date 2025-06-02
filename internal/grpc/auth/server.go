@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"errors"
 
+	"github.com/Noviiich/sso/internal/services/auth"
 	ssov1 "github.com/Noviiich/sso/protos/gen/go/sso"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -26,6 +28,7 @@ type Auth interface {
 
 type serverAPI struct {
 	ssov1.UnimplementedAuthServer //заглушка для методов, которые будут реализованы в будущем для запуска gRPC сервера
+	auth                          Auth
 }
 
 func Register(gRPC *grpc.Server) {
@@ -47,9 +50,17 @@ func (s *serverAPI) Login(
 		return nil, status.Error(codes.InvalidArgument, "app_id is required")
 	}
 
-	// Здесь должна быть логика аутентификации пользователя
+	token, err := s.auth.Login(ctx, req.Email, req.Password, int(req.AppId))
+	if err != nil {
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			return nil, status.Error(codes.InvalidArgument, "invalid email or password")
+		}
+
+		return nil, status.Error(codes.Internal, "failed to login")
+	}
+
 	return &ssov1.LoginResponse{
-		Token: "example_token", // Здесь должен быть реальный токен, полученный после аутентификации
+		Token: token,
 	}, nil
 }
 
