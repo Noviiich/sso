@@ -130,7 +130,7 @@ func (a *Auth) Login(
 	// Получение информации о приложении
 	app, err := a.appProvider.App(ctx, appID)
 	if err != nil {
-		fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	log.Info("user logged in successfully")
