@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/Noviiich/sso/internal/services/auth"
+	"github.com/Noviiich/sso/internal/storage"
 	ssov1 "github.com/Noviiich/sso/protos/gen/go/sso"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -75,8 +76,15 @@ func (s *serverAPI) Register(
 		return nil, status.Error(codes.InvalidArgument, "password is required")
 	}
 
-	// Здесь должна быть логика регистрации пользователя
-	return &ssov1.RegisterResponse{UserId: 1}, nil
+	uid, err := s.auth.RegisterNewUser(ctx, req.Email, req.Password)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserExists) {
+			return nil, status.Error(codes.AlreadyExists, "user already exists")
+		}
+		return nil, status.Error(codes.Internal, "failed to register user")
+	}
+
+	return &ssov1.RegisterResponse{UserId: uid}, nil
 }
 
 func (s *serverAPI) IsAdmin(
