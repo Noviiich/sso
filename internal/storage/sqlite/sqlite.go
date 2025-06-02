@@ -103,7 +103,7 @@ func (s *Storage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 }
 
 // App возвращает приложение по его ID
-func (s *Storage) App(ctx context.Context, appID string) (models.App, error) {
+func (s *Storage) App(ctx context.Context, appID int) (models.App, error) {
 	const op = "storage.sqlite.App"
 
 	stmt, err := s.db.Prepare("SELECT id, name, secret FROM apps WHERE id = ?")
