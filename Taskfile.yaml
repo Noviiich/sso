@@ -12,3 +12,11 @@ tasks:
     desc: "Run the application"
     cmds:
       - go run ./cmd/sso --config="./config/local.yaml"
+  start-test:  ## Команда для запуска приложения в тестовом режиме
+    desc: "Run the application in test mode"
+    cmds:
+      - go run ./cmd/sso --config="./config/local_tests.yaml"
+  test:  ## Команда для запуска тестов
+    desc: "Run tests"
+    cmds:
+      - go test ./tests -count=1 -v ## -count=1 чтобы не кэшировать результаты тестов
