@@ -26,8 +26,8 @@ service Auth {
 // Объект, который отправляется при вызове RPC-метода (ручки) Register.
 message RegisterRequest {
   string email = 1; // Email, который будет использоваться для регистрации.
-    string password = 2; // Password of the user to register.
-    }
+  string password = 2; // Password of the user to register.
+}
 
 // Объект, который метод (ручка) вернёт.
 message RegisterResponse {
