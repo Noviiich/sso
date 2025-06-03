@@ -1,12 +1,17 @@
 package grps
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net"
 
 	authrpc "github.com/Noviiich/sso/internal/grpc/auth"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type App struct {
@@ -20,7 +25,26 @@ func New(
 	authService authrpc.Auth,
 	port int,
 ) *App {
-	gRPCServer := grpc.NewServer()
+	// Логирование тела запроса и ответа
+	loggingOpts := []logging.Option{
+		logging.WithLogOnEvents(
+			logging.PayloadReceived, logging.PayloadSent,
+		),
+	}
+
+	// Логирование паники
+	recoveryOpts := []recovery.Option{
+		recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+			log.Error("Recovered from panic", slog.Any("panic", p))
+
+			// Возвращаем ошибку gRPC с кодом Internal
+			return status.Error(codes.Internal, "internal server error")
+		}),
+	}
+	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		recovery.UnaryServerInterceptor(recoveryOpts...),
+		logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
+	))
 
 	authrpc.Register(gRPCServer, authService)
 
@@ -62,4 +86,11 @@ func (a *App) Stop() {
 		Info("stopping gRPC server", slog.Int("port", a.port))
 
 	a.gRPCServer.GracefulStop()
+}
+
+// InterceptorLogger создает логгер для использования в интерсепторах gRPC
+func InterceptorLogger(l *slog.Logger) logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+		l.Log(ctx, slog.Level(lvl), msg, fields...)
+	})
 }
