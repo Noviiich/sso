@@ -23,7 +23,10 @@ type Auth struct {
 }
 
 var (
-	ErrInvalidCredentials = errors.New("invalid credentials") //
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserExists         = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrInvalidAppID       = errors.New("invalid app_id")
 )
 
 // UserSaver интерфейс для сохранения пользователя в БД.
